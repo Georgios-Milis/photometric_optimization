@@ -8,10 +8,10 @@ import numpy as np
 from glob import glob
 import time
 import datetime
-import imageio
+# import imageio
 
 sys.path.append('./models/')
-from FLAME import FLAME, FLAMETex
+from models.FLAME import FLAME, FLAMETex
 from renderer import Renderer
 import util
 torch.backends.cudnn.benchmark = True
@@ -23,7 +23,6 @@ class PhotometricFitting(object):
         self.image_size = config.image_size
         self.config = config
         self.device = device
-        #
         self.flame = FLAME(self.config).to(self.device)
         self.flametex = FLAMETex(self.config).to(self.device)
 
@@ -60,11 +59,11 @@ class PhotometricFitting(object):
         for k in range(200):
             losses = {}
             vertices, landmarks2d, landmarks3d = self.flame(shape_params=shape, expression_params=exp, pose_params=pose)
-            trans_vertices = util.batch_orth_proj(vertices, cam);
+            trans_vertices = util.batch_orth_proj(vertices, cam)
             trans_vertices[..., 1:] = - trans_vertices[..., 1:]
-            landmarks2d = util.batch_orth_proj(landmarks2d, cam);
+            landmarks2d = util.batch_orth_proj(landmarks2d, cam)
             landmarks2d[..., 1:] = - landmarks2d[..., 1:]
-            landmarks3d = util.batch_orth_proj(landmarks3d, cam);
+            landmarks3d = util.batch_orth_proj(landmarks3d, cam)
             landmarks3d[..., 1:] = - landmarks3d[..., 1:]
 
             losses['landmark'] = util.l2_distance(landmarks2d[:, 17:, :2], gt_landmark[:, 17:, :2]) * config.w_lmks
@@ -103,11 +102,11 @@ class PhotometricFitting(object):
         for k in range(200, 1000):
             losses = {}
             vertices, landmarks2d, landmarks3d = self.flame(shape_params=shape, expression_params=exp, pose_params=pose)
-            trans_vertices = util.batch_orth_proj(vertices, cam);
+            trans_vertices = util.batch_orth_proj(vertices, cam)
             trans_vertices[..., 1:] = - trans_vertices[..., 1:]
-            landmarks2d = util.batch_orth_proj(landmarks2d, cam);
+            landmarks2d = util.batch_orth_proj(landmarks2d, cam)
             landmarks2d[..., 1:] = - landmarks2d[..., 1:]
-            landmarks3d = util.batch_orth_proj(landmarks3d, cam);
+            landmarks3d = util.batch_orth_proj(landmarks3d, cam)
             landmarks3d[..., 1:] = - landmarks3d[..., 1:]
 
             losses['landmark'] = util.l2_distance(landmarks2d[:, :, :2], gt_landmark[:, :, :2]) * config.w_lmks
@@ -153,7 +152,6 @@ class PhotometricFitting(object):
                 shape_images = self.render.render_shape(vertices, trans_vertices, images)
                 grids['shape'] = torchvision.utils.make_grid(
                     F.interpolate(shape_images[visind], [224, 224])).detach().float().cpu()
-
 
                 # grids['tex'] = torchvision.utils.make_grid(F.interpolate(albedos[visind], [224, 224])).detach().cpu()
                 grid = torch.cat(list(grids.values()), 1)
@@ -224,13 +222,18 @@ class PhotometricFitting(object):
 
 
 if __name__ == '__main__':
-    image_name = str(sys.argv[1])
-    device_name = str(sys.argv[2])
+    image_name = "00003" 
+    device_name = "cuda" if torch.cuda.is_available() else "cpu"
+    print("Device:", device_name)
+
     config = {
         # FLAME
-        'flame_model_path': './data/generic_model.pkl',  # acquire it from FLAME project page
+        'flame_model_path': '../FLAME/model/generic_model.pkl',  # acquire it from FLAME project page
+        # My trash additions
+        # 'static_lmk_embedding_path': '../FLAME/model/flame_static_embedding.pkl', #landmark_embedding.npy
+        # 'dynamic_lmk_embedding_path': '../FLAME/model/flame_dynamic_embedding.npy',
         'flame_lmk_embedding_path': './data/landmark_embedding.npy',
-        'tex_space_path': './data/FLAME_texture.npz',  # acquire it from FLAME project page
+        'tex_space_path': '../FLAME/model/FLAME_texture.npz',  # acquire it from FLAME project page
         'camera_params': 3,
         'shape_params': 100,
         'expression_params': 50,
