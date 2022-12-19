@@ -16,6 +16,12 @@ from renderer import Renderer
 import util
 torch.backends.cudnn.benchmark = True
 
+"""
+Ground truth landmarks are given in .npy files along with the images.
+It iterates for rigid fitting and shows: image, ground truth, landrmarks2D, landmarks3D.
+Then, non-rigid fitting shows: image, ground truth, landrmarks2D, landmarks3D, albedo, render, shape.
+"""
+
 
 class PhotometricFitting(object):
     def __init__(self, config, device='cuda'):
@@ -265,4 +271,4 @@ if __name__ == '__main__':
 
     imagepath = os.path.sep.join([input_folder, image_name + '.png'])
     landmarkpath = os.path.sep.join([input_folder, image_name + '.npy'])
-    fitting.run(imagepath, landmarkpath)
+    # fitting.run(imagepath, landmarkpath)
